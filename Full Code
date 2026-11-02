@@ -1,0 +1,150 @@
+#include <kipr/wombat.h>
+// DECLARE FUNCTIONS
+void forward();
+void backward();
+void servowave1();
+void sensegreen();
+void sensered();
+void senseblue();
+void servowave2();
+void servowave3(); 
+void nothing(); 
+
+// DECLARE VARIABLES
+int red = 2;
+int green = 0;
+int blue = 1;
+int lmotor = 0;
+int rmotor = 2;
+int lspeed = 35;
+int rspeed = 55;
+int counter = 0;
+int servolow = 350;
+int servohigh = 1700;
+int servotime = 500;
+int servoport = 1;
+int movetime = 200;
+int ctime = 1000; 
+int ptime = 100;
+
+int main()
+{
+    camera_open_black();    // open the camera
+    while (digital(5) == 0) // while the digital sensor on port 0 is not pressed
+    {
+        camera_update(); //update camera feed
+        msleep(ptime);	//wait 100 milliseconds
+        sensegreen(); // call the sensegreen function to check for green objects
+        sensered();   // call the sensered function to check for red objects
+        senseblue();  // call the senseblue function to check for blue objects
+      	msleep(ptime);  //wait 100 milliseconds
+        nothing();  //if the camera does not see one of the three colors
+        msleep(ptime);    //wait 100 milliseconds
+    }
+    camera_close(); // close the camera
+
+    return 0;
+}
+
+void forward()
+{
+    motor(lmotor, lspeed); // set motor on port 0 to speed 35
+    msleep(movetime);   // move for 200 milliseconds 
+    motor(rmotor, rspeed); // set motor on port 3 to speed 55
+    msleep(movetime);      // move for 200 milliseconds
+}
+
+void backward()
+{
+    motor(lmotor, -lspeed); // set motor on port 0 to speed -35 (reverse)
+    msleep(movetime);	//wait for 200 milliseconds 
+    motor(rmotor, -rspeed); // set motor on port 3 to speed -55 (reverse)
+    msleep(movetime);       // wait for 200 milliseconds
+}
+
+void servowave1()
+{
+    while (counter <= 2)
+    {
+        enable_servos();                          // enable the servos
+        set_servo_position(servoport, 1400);  // set servo on port 0 to position 1400
+        msleep(ptime);                        // wait for 100 milliseconds
+        set_servo_position(servoport, 1700); // set servo on port 0 to position 1700
+        msleep(ptime);                        // wait for 100 milliseconds
+        disable_servos();                         // disable the servos
+        counter = counter + 1;                    // increment counter by 1
+    }
+}
+
+void servowave2()
+{
+    while (counter <= 2)
+    {
+        enable_servos();                          // enable the servos
+        set_servo_position(servoport, servolow);  // set servo on port 0 to position 350
+        msleep(movetime);                        // wait for 200 milliseconds
+        set_servo_position(servoport, servohigh); // set servo on port 0 to position 1700
+        msleep(movetime);                        // wait for 200 milliseconds
+        disable_servos();                         // disable the servos
+        counter = counter + 1;                    // increment counter by 1
+    }
+}
+
+void servowave3()
+{
+    while (counter <= 2)
+    {
+        enable_servos();                          // enable the servos
+        set_servo_position(servoport, 500);  // set servo on port 0 to position 500
+        msleep(servotime);                        // wait for 500 milliseconds
+        set_servo_position(servoport, 800); // set servo on port 0 to position 800
+        msleep(servotime);                        // wait for 500 milliseconds
+        disable_servos();                         // disable the servos
+        counter = counter + 1;                    // increment counter by 1
+    }
+}
+
+void sensegreen()
+{
+    if (get_object_count(green) >= 120) // check if there is at least one object of color 0 (green)
+    {
+        printf("that color is green \n "); // print message if green object is detected
+        servowave1();
+        counter=0;
+        camera_update(); // update the camera to get the latest image
+        
+    }
+}
+
+void sensered()
+{
+    if (get_object_count(red) >=4) // check if there is at least one object of color 1 (red)
+    {
+        printf("that color is red \n "); // print message if red object is detected
+      	servowave2();
+        counter=0;
+        camera_update(); // update the camera to get the latest image
+        
+    }
+}
+
+void senseblue()
+{
+    if (get_object_count(blue) >=300) // check if there is at least one object of color 2 (blue)
+    {
+        printf("that color is blue \n "); // print message if blue object is detected
+        servowave3(); 
+        counter=0; 
+        camera_update();                  // update the camera to get the latest image
+        
+    }
+}
+
+void nothing()
+{
+	if((get_object_count(red)<=3) && (get_object_count(green)<=80) && (get_object_count(blue)<100)) //if the camera does not sense any of the three colors
+    {
+    	printf("no colors \n");
+        camera_update();    //refresh image 
+    }
+}
