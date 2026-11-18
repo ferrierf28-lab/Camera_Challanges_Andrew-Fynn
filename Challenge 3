@@ -1,0 +1,43 @@
+#include <kipr/wombat.h>
+void servomove();
+
+//DECLARE VARIABLES
+int servoport=1;
+int bport=5;
+int red=2;  //Red is in channel 2
+int value=10;  //Placeholder value for x position
+int servoposition=69;  //placeholder value for servo postion 
+int mpause=200;
+int spause=10;
+int main()
+{
+    	camera_open_black(); 
+    	camera_update(); 
+    	msleep(spause);   
+    	enable_servos();
+    	while(digital(bport)==0)  //while button is not pressed
+        {
+            camera_update();
+            if(get_object_count(red) >=4)  //if it detects the object
+            {
+                value=get_object_center_x(red,0);  //value int is equal to x position
+            	 servoposition=(-3 * value)+1977;  // the servo position is equal to -3 x the x position +1977
+           		 servomove();
+               	 
+            }
+            else  //if it does not detect the object
+            {
+                ao(); //stop moving 
+            }
+           	
+        }
+    	camera_close();
+    	disable_servos(); 
+        return 0;
+}
+
+void servomove()
+{
+    set_servo_position(servoport, servoposition);
+    msleep(spause);
+}
